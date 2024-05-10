@@ -30,8 +30,6 @@ fn handle_event(mode: &Mode, ev: event::Event, _stdout: &mut Stdout, cx: &mut u1
 
 
 fn handle_command_mode_event(ev: event::Event) -> anyhow::Result<Option<Action>> {
-    //unimplemented!("Command Event: {ev:?}");
-
     match ev {
         event::Event::Key(event) => match event.code {
             event::KeyCode::Char('q') => Ok(Some(Action::Quit)),
