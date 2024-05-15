@@ -1,7 +1,7 @@
 use std::io::{stdout, Stdout, Write};
 
 use anyhow::Ok;
-use crossterm::{cursor, event::{self, read}, style::{self}, terminal, ExecutableCommand, QueueableCommand};
+use crossterm::{cursor, event::{self, read}, style::{self, Stylize}, terminal, ExecutableCommand, QueueableCommand};
 
 
 #[derive(Debug)]
@@ -105,8 +105,8 @@ impl Editor {
     }
 
     fn draw_status_line(&mut self) -> anyhow::Result<()> {
-        self.stdout.queue(cursor::MoveTo(self.window_size.0+3, self.window_size.1-2))?;
-        self.stdout.queue(style::Print(format!("{:?}", self.current_mode)))?;
+        self.stdout.queue(cursor::MoveTo(0, self.window_size.1-2))?;
+        self.stdout.queue(style::PrintStyledContent(format!("\n{:?}", self.current_mode).bold()))?;
 
         self.stdout.flush()?;
 
