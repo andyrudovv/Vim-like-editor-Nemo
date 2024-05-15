@@ -104,10 +104,41 @@ impl Editor {
         }
     }
 
-    fn draw_status_line(&mut self) -> anyhow::Result<()> {
-        self.stdout.queue(cursor::MoveTo(0, self.window_size.1-2))?;
-        self.stdout.queue(style::PrintStyledContent(format!("\n{:?}", self.current_mode).bold()))?;
+    fn clear_stylized_status_line(&mut self) {
+        _ = self.stdout.flush();
+        _ = self.stdout.queue(cursor::MoveTo(0, self.window_size.1-2));
+        let clear_status = 
+        format!("{}", " "
+                    .repeat(self.window_size.0 as usize))
+                    .on(style::Color::Rgb{r:225,g:148,b:148});
 
+        _ = self.stdout.execute(style::PrintStyledContent(clear_status));
+    }
+
+    fn clear_status_line(&mut self) {
+        _ = self.stdout.flush();
+        _ = self.stdout.queue(cursor::MoveTo(0, self.window_size.1-2));
+        let clear_status = " ".repeat(self.window_size.0 as usize);
+
+        _ = self.stdout.execute(style::Print(clear_status));
+    }
+
+    fn draw_status_line(&mut self) -> anyhow::Result<()> {
+        
+        let separator = "►".to_uppercase();
+
+        self.clear_status_line();
+
+        let status = format!(" {:?} {}", self.current_mode, separator)
+        .to_uppercase()
+        .with(style::Color::Black)
+        .bold()
+        .on(style::Color::Rgb{r:225,g:148,b:148});
+
+        self.stdout.queue(cursor::MoveTo(0, self.window_size.1-2))?;
+        self.stdout
+            .queue(style::PrintStyledContent(status))?;
+        
         self.stdout.flush()?;
 
         Ok(())
