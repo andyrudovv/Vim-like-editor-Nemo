@@ -1,6 +1,5 @@
-use std::io::{stdout, Stdout, Write};
-
-use std::str;
+use std::{fmt::format, io::{stdout, Stdout, Write}};
+use chrono::prelude::*;
 
 use anyhow::Ok;
 use crossterm::{cursor, event::{self, read}, style::{self, Stylize}, terminal, ExecutableCommand, QueueableCommand};
@@ -30,7 +29,9 @@ pub struct Editor {
     cx: u16,
     cy: u16,
 
-    window_size: (u16, u16)
+    window_size: (u16, u16),
+
+    current_time: DateTime<Local>
 }
 
 impl Drop for Editor {
@@ -44,7 +45,12 @@ impl Drop for Editor {
 
 impl Editor {
     pub fn new() -> Editor {
-        Editor {stdout: stdout(), current_mode: Mode::Command, cx: 0, cy: 0, window_size: (0,0)}
+        Editor {stdout: stdout(), current_mode: Mode::Command, cx: 0, cy: 0, 
+            window_size: (0,0), current_time: Local::now()}
+    }
+
+    fn update_time(&mut self) {
+        self.current_time = Local::now();
     }
 
     fn handle_event(&mut self, ev: event::Event) -> anyhow::Result<Option<Action>>{
@@ -125,14 +131,33 @@ impl Editor {
         _ = self.stdout.execute(style::Print(clear_status));
     }
 
+    pub fn get_time_status(&mut self) -> String {
+
+        let mut hour = self.current_time.hour().to_string();
+        let mut minute = self.current_time.minute().to_string();
+
+        match minute.trim().len() {
+            1 => {minute = format!("0{}", minute);},
+            _ => {}
+        }
+        match hour.trim().len() {
+            1 => {hour = format!("0{}", hour);},
+            _ => {}
+        }
+
+        let time_status = format!("{}:{}", hour, minute);
+
+        return time_status;
+    }
+
     fn draw_status_line(&mut self) -> anyhow::Result<()> {
         let separator = "|".to_uppercase();
-
-        println!("{}", separator);
+        let time_status = self.get_time_status();
+        
 
         self.clear_status_line();
 
-        let status = format!(" {:?} {}", self.current_mode, separator)
+        let status = format!(" {:?} {} {}", self.current_mode, separator, time_status)
         .to_uppercase()
         .with(style::Color::Black)
         .bold()
@@ -159,6 +184,7 @@ impl Editor {
 
         loop {
             let _ = self.draw_status_line();
+            self.update_time();
             
             self.stdout.queue(cursor::MoveTo(self.cx, self.cy))?;
             self.stdout.flush()?;
