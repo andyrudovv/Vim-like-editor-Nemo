@@ -1,5 +1,7 @@
 use std::io::{stdout, Stdout, Write};
 
+use std::str;
+
 use anyhow::Ok;
 use crossterm::{cursor, event::{self, read}, style::{self, Stylize}, terminal, ExecutableCommand, QueueableCommand};
 
@@ -124,8 +126,9 @@ impl Editor {
     }
 
     fn draw_status_line(&mut self) -> anyhow::Result<()> {
-        
-        let separator = "►".to_uppercase();
+        let separator = "|".to_uppercase();
+
+        println!("{}", separator);
 
         self.clear_status_line();
 
